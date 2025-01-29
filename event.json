@@ -1,0 +1,3 @@
+{
+	"SECRETS_ARN": "arn:aws:secretsmanager:region:account-id:secret:discord_bot_secrets"
+}

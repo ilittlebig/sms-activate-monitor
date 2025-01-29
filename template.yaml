@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  DiscordBotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: bot.lambda_handler
+      Runtime: python3.9
+      CodeUri: discord_bot/
+      MemorySize: 128
+      Timeout: 15
+      Environment:
+        Variables:
+          SECRETS_ARN: "mock-secrets-arn"

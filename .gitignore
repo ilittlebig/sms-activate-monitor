@@ -1,0 +1,15 @@
+# Ignore Lambda build artifacts
+bot.zip
+
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.*
+
+# Sensitive files
+.env
+terraform.tfvars
+
+# Ignore installed Python dependencies in the vendor directory
+discord_bot/vendor/
