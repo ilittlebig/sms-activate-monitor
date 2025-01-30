@@ -142,13 +142,13 @@ resource "aws_lambda_function" "discord_bot" {
   }
 }
 
-resource "aws_cloudwatch_event_rule" "every_10_minutes" {
-  name                = "every_10_minutes"
-  schedule_expression = "rate(10 minutes)"
+resource "aws_cloudwatch_event_rule" "every_2_minutes" {
+  name                = "every_2_minutes"
+  schedule_expression = "rate(2 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "trigger_lambda" {
-  rule      = aws_cloudwatch_event_rule.every_10_minutes.name
+  rule      = aws_cloudwatch_event_rule.every_2_minutes.name
   target_id = "lambda"
   arn       = aws_lambda_function.discord_bot.arn
 }
@@ -157,5 +157,5 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.discord_bot.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.every_10_minutes.arn
+  source_arn    = aws_cloudwatch_event_rule.every_2_minutes.arn
 }
