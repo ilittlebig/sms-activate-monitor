@@ -6,6 +6,7 @@
 import logging
 import requests
 from utils.sms_activate import check_gmx_stock
+from utils.aws import update_guild_config
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -46,12 +47,20 @@ def send_to_discord(token, channel_id, gmx_stock, country_name):
 
 def process_guild(guild, sms_api_key, discord_token):
     channel_id = guild["ChannelID"]
+    guild_id = guild["GuildID"]
     country = guild["Country"]
 
-    logger.info(f"Checking GMX stock for {country}")
+    current_stock = check_gmx_stock(sms_api_key, 43)
+    logger.info(f"Fetched current stock: {current_stock} (GuildID={guild_id}, Country={country})")
 
-    gmx_stock = check_gmx_stock(sms_api_key, 43)
-    if gmx_stock > 0:
-        send_to_discord(discord_token, channel_id, gmx_stock, country)
+    last_stock = guild.get("LastStock", 0)
+    threshold = guild.get("Threshold", 50)
+
+    if (current_stock - last_stock) >= threshold:
+        send_to_discord(discord_token, channel_id, current_stock, country)
+        update_guild_config(guild_id, last_stock=current_stock)
     else:
-        logger.info(f"No GMX stock available for {country}")
+        logger.info(
+            f"No significant restock for guild={guild_id}. "
+            f"(current={current_stock}, last={last_stock}, threshold={threshold})"
+        )

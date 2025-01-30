@@ -30,10 +30,14 @@ def get_guild_config(guild_id):
         TableName="DiscordMonitoringConfig",
         Key={"GuildID": {"S": guild_id}}
     )
+
     if "Item" in response:
         return {
+            "GuildID": item["GuildID"]["S"],
             "ChannelID": response["Item"]["ChannelID"]["S"],
-            "Country": response["Item"]["Country"]["S"]
+            "Country": response["Item"]["Country"]["S"],
+            "LastStock": int(item.get("LastStock", {}).get("N", 0)),
+            "Threshold": int(item.get("Threshold", {}).get("N", 50)),
         }
     return None
 
@@ -45,7 +49,9 @@ def get_all_guilds():
             {
                 "GuildID": item["GuildID"]["S"],
                 "ChannelID": item["ChannelID"]["S"],
-                "Country": item["Country"]["S"]
+                "Country": item["Country"]["S"],
+                "LastStock": int(item.get("LastStock", {}).get("N", 0)),
+                "Threshold": int(item.get("Threshold", {}).get("N", 50)),
             }
             for item in response.get("Items", [])
         ]
@@ -53,6 +59,34 @@ def get_all_guilds():
     except Exception as e:
         logger.error(f"Error fetching all guilds: {e}")
         return []
+
+
+def update_guild_config(guild_id, last_stock=None, threshold=None):
+    update_expressions = []
+    expression_values = {}
+
+    if last_stock is not None:
+        update_expressions.append("LastStock = :lastStock")
+        expression_values[":lastStock"] = {"N": str(last_stock)}
+
+    if threshold is not None:
+        update_expressions.append("Threshold = :threshold")
+        expression_values[":threshold"] = {"N": str(threshold)}
+
+    if not update_expressions:
+        return
+    update_expression = "SET " + ", ".join(update_expressions)
+
+    try:
+        dynamodb.update_item(
+            TableName="DiscordMonitoringConfig",
+            Key={"GuildID": {"S": guild_id}},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_values
+        )
+        logger.info(f"Updated guild {guild_id} with {update_expressions}")
+    except Exception as e:
+        logger.error(f"Error updating guild config: {e}")
 
 
 def process_command(body):
@@ -96,4 +130,13 @@ def process_command(body):
         return {
             "type": 4,
             "data": { "content": f"Alerts will be sent to <#{channel_id}>." }
+        }
+
+    elif command_name == "setthreshold":
+        threshold_value = body["data"]["options"][0]["value"]
+        # TODO: Validate it's a positive integer or something
+        update_guild_config(guild_id, threshold=threshold_value)
+        return {
+            "type": 4,
+            "data": { "content": f"Threshold updated to {threshold_value}." }
         }

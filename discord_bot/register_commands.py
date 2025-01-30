@@ -55,6 +55,18 @@ def register_commands(discord_token, application_id, api_url):
                     "required": True
                 }
             ]
+        },
+        {
+            "name": "setthreshold",
+            "description": "Set the minimum stock increase needed before an alert is sent",
+            "options": [
+                {
+                    "type": 4,
+                    "name": "threshold",
+                    "description": "Minimum stock increase required for alert",
+                    "required": True
+                }
+            ]
         }
     ]
 
