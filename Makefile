@@ -23,18 +23,20 @@ apply:
 destroy:
 	cd $(TERRAFORM_DIR) && terraform destroy -auto-approve
 
-# Install all dependencies needed to run the application
-install-deps:
-	pip3 install -r discord_bot/requirements.txt --target discord_bot/vendor/ --upgrade
-
 # Run the project locally before deploying to production
 local-run:
-	sam local invoke DiscordBotFunction
+		sam build --use-container && \
+		cp discord_bot/.env .aws-sam/build/DiscordBotFunction/.env && \
+		sam local invoke DiscordBotFunction
 
 # Package the project for deployment
 package:
-	cd discord_bot && zip -r ../bot.zip . && cd ..
+	cd .aws-sam/build/DiscordBotFunction && zip -r ../../../bot.zip . -x "__pycache__/*" "*.pyc" "*.DS_Store" ".env"
 
 # Deploy the project to the cloud
 deploy: package
-	terraform apply -auto-approve
+	cd infra && terraform apply -auto-approve && cd ..
+
+# Display outputs
+output:
+	cd infra && terraform output && cd ..

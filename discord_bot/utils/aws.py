@@ -5,6 +5,12 @@
 
 import boto3
 import json
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+dynamodb = boto3.client("dynamodb")
 
 def get_secrets(secret_arn):
     client = boto3.client("secretsmanager")
@@ -17,3 +23,77 @@ def get_secrets(secret_arn):
             raise ValueError("SecretString is empty or unavailable in the response.")
     except Exception as e:
         raise Exception(f"Failed to fetch secrets: {e}")
+
+
+def get_guild_config(guild_id):
+    response = dynamodb.get_item(
+        TableName="DiscordMonitoringConfig",
+        Key={"GuildID": {"S": guild_id}}
+    )
+    if "Item" in response:
+        return {
+            "ChannelID": response["Item"]["ChannelID"]["S"],
+            "Country": response["Item"]["Country"]["S"]
+        }
+    return None
+
+
+def get_all_guilds():
+    try:
+        response = dynamodb.scan(TableName="DiscordMonitoringConfig")
+        guilds = [
+            {
+                "GuildID": item["GuildID"]["S"],
+                "ChannelID": item["ChannelID"]["S"],
+                "Country": item["Country"]["S"]
+            }
+            for item in response.get("Items", [])
+        ]
+        return guilds
+    except Exception as e:
+        logger.error(f"Error fetching all guilds: {e}")
+        return []
+
+
+def process_command(body):
+    logger.info(f"Processing command: {body}")
+
+    data = body.get("data")
+    if not data:
+        logger.error("No 'data' key found in body")
+        return {"statusCode": 400, "body": "Invalid body structure"}
+
+    command_name = data.get("name")
+    if not command_name:
+        logger.error("No 'name' key found in 'data'")
+        return {"statusCode": 400, "body": "Missing command name"}
+
+    guild_id = body.get("guild_id")
+
+    if command_name == "monitor":
+        country = body["data"]["options"][0]["value"]
+        dynamodb.update_item(
+            TableName="DiscordMonitoringConfig",
+            Key={"GuildID": {"S": guild_id}},
+            UpdateExpression="SET Country = :country",
+            ExpressionAttributeValues={":country": {"S": country}}
+        )
+
+        return {
+            "type": 4,
+            "data": { "content": f"Monitoring country set to {country}." }
+        }
+
+    elif command_name == "setchannel":
+        channel_id = body["data"]["options"][0]["value"]
+        dynamodb.update_item(
+            TableName="DiscordMonitoringConfig",
+            Key={"GuildID": {"S": guild_id}},
+            UpdateExpression="SET ChannelID = :channel",
+            ExpressionAttributeValues={":channel": {"S": channel_id}}
+        )
+
+        return {
+            "type": 4,
+            "data": { "content": f"Alerts will be sent to <#{channel_id}>." }
+        }

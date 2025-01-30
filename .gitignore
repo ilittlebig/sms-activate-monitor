@@ -13,3 +13,9 @@ terraform.tfvars
 
 # Ignore installed Python dependencies in the vendor directory
 discord_bot/vendor/
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore SAM build directory
+.aws-sam/
