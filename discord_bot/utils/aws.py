@@ -12,6 +12,21 @@ logger.setLevel(logging.INFO)
 
 dynamodb = boto3.client("dynamodb")
 
+ADMINISTRATOR_PERMISSION = 0x00000008
+
+def check_permissions(permissions):
+    if permissions & ADMINISTRATOR_PERMISSION:
+        return None
+
+    return {
+        "type": 4,
+        "data": {
+            "content": "You do not have the required permissions to use this command.",
+            "flags": 64
+        }
+    }
+
+
 def get_secrets(secret_arn):
     client = boto3.client("secretsmanager")
     try:
@@ -103,6 +118,15 @@ def process_command(body):
         return {"statusCode": 400, "body": "Missing command name"}
 
     guild_id = body.get("guild_id")
+    member = body.get("member", {})
+
+    user_id = member.get("user", {}).get("id")
+    is_owner = body.get("guild", {}).get("owner_id") == user_id
+    permissions = int(member.get("permissions", 0))
+
+    not_allowed_payload = check_permissions(permissions)
+    if not is_owner and not_allowed_payload:
+        return not_allowed_payload
 
     if command_name == "monitor":
         country = body["data"]["options"][0]["value"]

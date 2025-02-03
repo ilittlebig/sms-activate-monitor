@@ -35,6 +35,7 @@ def register_commands(discord_token, application_id, api_url):
         {
             "name": "monitor",
             "description": "Set the country to monitor",
+            "default_member_permissions": "8",
             "options": [
                 {
                     "type": 3,
@@ -47,6 +48,7 @@ def register_commands(discord_token, application_id, api_url):
         {
             "name": "setchannel",
             "description": "Set the alert channel",
+            "default_member_permissions": "8",
             "options": [
                 {
                     "type": 7,
@@ -59,6 +61,7 @@ def register_commands(discord_token, application_id, api_url):
         {
             "name": "setthreshold",
             "description": "Set the minimum stock increase needed before an alert is sent",
+            "default_member_permissions": "8",
             "options": [
                 {
                     "type": 4,

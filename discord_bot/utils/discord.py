@@ -51,7 +51,6 @@ def process_guild(guild, sms_api_key, discord_token):
     country = guild["Country"]
 
     current_stock = check_gmx_stock(sms_api_key, 43)
-    logger.info(f"Fetched current stock: {current_stock} (GuildID={guild_id}, Country={country})")
 
     last_stock = guild.get("LastStock", 0)
     threshold = guild.get("Threshold", 50)
@@ -59,8 +58,4 @@ def process_guild(guild, sms_api_key, discord_token):
     if (current_stock - last_stock) >= threshold:
         send_to_discord(discord_token, channel_id, current_stock, country)
         update_guild_config(guild_id, last_stock=current_stock)
-    else:
-        logger.info(
-            f"No significant restock for guild={guild_id}. "
-            f"(current={current_stock}, last={last_stock}, threshold={threshold})"
-        )
+    update_guild_config(guild_id, last_stock=current_stock)
