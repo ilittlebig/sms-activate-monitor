@@ -104,6 +104,13 @@ make deploy
 ```
 This command will utilize Terraform to provision the required AWS resources and deploy your packaged application.
 
+**4. Register Discord Commands:**
+After deploying the application, initialize the bot’s commands by running:
+```bash
+python3.9 discord_bot/register_commands.py
+```
+This script registers the bot’s commands with Discord, making them available for use in your server. Ensure that this step is performed after the deployment process to finalize the bot’s setup.
+
 ## Usage
 Once deployed, the bot will automatically monitor GMX number availability on SMS-Activate and send alerts to the configured Discord channels. You can interact with the bot using the following commands:
 
