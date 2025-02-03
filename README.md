@@ -63,10 +63,9 @@ Before setting up the SMS-Activate Monitor, ensure you have the following:
   ```
 
 **4. Initialize Terraform:**
-  Navigate to the infra directory and initialize Terraform:
+  From the root directory:
   ```bash
-  cd infra
-  terraform init
+  make init
   ```
 
 ## Configuration
