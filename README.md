@@ -59,7 +59,7 @@ Before setting up the SMS-Activate Monitor, ensure you have the following:
 
 **3. Install Python Dependencies:**
   ```bash
-  pip install -r requirements.txt
+  pip install -r discord_bot/requirements.txt
   ```
 
 **4. Initialize Terraform:**
